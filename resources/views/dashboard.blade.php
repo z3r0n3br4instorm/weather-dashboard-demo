@@ -6,24 +6,24 @@
         <div class="bg-white overflow-hidden shadow-lg rounded-xl transition-colors">
             <div class="p-6 bg-white border-b border-gray-200 transition-colors">
                 <h1 class="text-2xl font-bold mb-6 text-blue-600 transition-colors">Air Quality Dashboard - Colombo Metropolitan Area</h1>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Map and sensor information -->
                     <div class="md:col-span-2">
                         <div id="map" class="map-container rounded-xl shadow-lg overflow-hidden"></div>
-                        
+
                         <div class="mt-6">
-                            <h2 class="text-lg font-semibold mb-3">AQI Legend</h2>
+                            <h2 class="text-lg font-bold mb-3">AQI Legend</h2>
                             <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
                                 @foreach($alertThresholds as $threshold)
-                                <div class="rounded-lg px-3 py-2 text-center shadow-sm" style="background-color: {{ $threshold->color_code }}; color: {{ in_array($threshold->category, ['Unhealthy', 'Very Unhealthy', 'Hazardous']) ? 'white' : 'black' }}">
+                                <div class="rounded-lg px-3 py-2 text-center shadow-sm flex justify-center items-center" style="background-color: {{ $threshold->color_code }}; color: {{ in_array($threshold->category, ['Unhealthy', 'Very Unhealthy', 'Hazardous']) ? 'white' : 'black' }}">
                                     {{ $threshold->category }}
                                 </div>
                                 @endforeach
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Current weather and selected sensor info -->
                     <div>
                         <div class="bg-gray-100 p-5 rounded-xl shadow-md mb-6 transition-colors">
@@ -37,7 +37,7 @@
                                 <p class="text-gray-500">Loading weather data...</p>
                             </div>
                         </div>
-                        
+
                         <div class="bg-gray-100 p-5 rounded-xl shadow-md transition-colors">
                             <h2 class="text-lg font-semibold mb-3 flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
@@ -51,7 +51,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Historical data chart -->
                 <div class="mt-8">
                     <h2 class="text-lg font-semibold mb-3 flex items-center">
@@ -64,7 +64,7 @@
                         <div id="chart-container" style="height: 350px;">
                             <canvas id="aqi-chart"></canvas>
                         </div>
-                        
+
                         <div class="mt-5 text-center" id="timeframe-selector">
                             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg mx-2 shadow-sm transition-colors" data-timeframe="day">24 Hours</button>
                             <button class="bg-gray-300 hover:bg-blue-700 text-gray-800 hover:text-white font-bold py-2 px-4 rounded-lg mx-2 shadow-sm transition-colors" data-timeframe="week">Week</button>
@@ -82,18 +82,18 @@
 <script>
     // Initialize the map
     const map = L.map('map').setView([6.9271, 79.8612], 12); // Colombo coordinates
-    
+
     // Add tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    
+
     // Create a marker object to track the currently selected sensor
     let selectedMarker = null;
     let selectedSensor = null;
     let chart = null;
     let currentTimeframe = 'day';
-    
+
     // Function to set AQI class based on value
     function getAqiClass(aqi) {
         if (aqi <= 50) return 'aqi-good';
@@ -103,7 +103,7 @@
         if (aqi <= 300) return 'aqi-very-unhealthy';
         return 'aqi-hazardous';
     }
-    
+
     // Function to get marker color based on AQI
     function getMarkerColor(aqi) {
         if (aqi <= 50) return '#00E400';
@@ -113,7 +113,7 @@
         if (aqi <= 300) return '#99004C';
         return '#7E0023';
     }
-    
+
     // Function to create circle marker
     function createMarker(sensor) {
         const aqi = sensor.latest_reading ? sensor.latest_reading.aqi : 0;
@@ -125,7 +125,7 @@
             opacity: 1,
             fillOpacity: 0.8
         });
-        
+
         // Add popup
         marker.bindPopup(`
             <div class="sensor-popup">
@@ -141,25 +141,25 @@
                 <button class="mt-2 bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded-lg w-full transition-colors">View Details</button>
             </div>
         `);
-        
+
         // Add click event
         marker.on('click', function() {
             viewSensorDetails(sensor.id);
         });
-        
+
         return marker;
     }
-    
+
     // Load sensors
     let sensors = @json($sensors);
-    
+
     // Add markers for each sensor
     sensors.forEach(function(sensor) {
         if (sensor.status === 'active') {
             createMarker(sensor).addTo(map);
         }
     });
-    
+
     // Function to load and display weather data
     function loadWeatherData() {
         fetch('/weather')
@@ -187,27 +187,27 @@
                 document.getElementById('weather-info').innerHTML = '<p>Failed to load weather data.</p>';
             });
     }
-    
+
     // Load weather data initially
     loadWeatherData();
-    
+
     // View sensor details function
     function viewSensorDetails(sensorId) {
         selectedSensor = sensors.find(s => s.id === sensorId);
-        
+
         if (selectedSensor) {
             const aqi = selectedSensor.latest_reading ? selectedSensor.latest_reading.aqi : 0;
             const html = `
                 <div class="bg-white bg-opacity-40 p-4 rounded-lg">
                     <h3 class="font-bold text-lg">${selectedSensor.name}</h3>
                     <p class="text-sm">${selectedSensor.location_name}</p>
-                    
+
                     ${selectedSensor.latest_reading ? `
                         <div class="mt-4 ${getAqiClass(aqi)} p-3 rounded-lg text-center shadow-sm">
                             <span class="font-bold text-2xl">${aqi.toFixed(0)}</span><br>
                             <span>${selectedSensor.latest_reading.category}</span>
                         </div>
-                        
+
                         <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
                             <div class="bg-white bg-opacity-60 p-2 rounded-lg">
                                 <p><span class="font-semibold">PM2.5:</span> ${selectedSensor.latest_reading.pm25 || 'N/A'}</p>
@@ -220,31 +220,31 @@
                                 <p><span class="font-semibold">SO2:</span> ${selectedSensor.latest_reading.so2 || 'N/A'}</p>
                             </div>
                         </div>
-                        
+
                         <div class="mt-3 bg-white bg-opacity-60 p-2 rounded-lg grid grid-cols-2 gap-3">
                             <p><span class="font-semibold">Temperature:</span> ${selectedSensor.latest_reading.temperature || 'N/A'}°C</p>
                             <p><span class="font-semibold">Humidity:</span> ${selectedSensor.latest_reading.humidity || 'N/A'}%</p>
                         </div>
-                        
+
                         <p class="mt-3 text-xs">Last updated: ${new Date(selectedSensor.latest_reading.recorded_at).toLocaleString()}</p>
                     ` : '<p class="mt-2">No readings available for this sensor.</p>'}
                 </div>
             `;
-            
+
             document.getElementById('selected-sensor').innerHTML = html;
-            
+
             // Load historical data
             loadSensorHistoricalData(sensorId, currentTimeframe);
         }
     }
-    
+
     // Load historical data for a sensor
     function loadSensorHistoricalData(sensorId, timeframe) {
         fetch(`/sensor/${sensorId}/history?timeframe=${timeframe}`)
             .then(response => response.json())
             .then(data => {
                 updateChart(data.labels, data.aqi, data.sensor.name);
-                
+
                 // Update timeframe buttons
                 document.querySelectorAll('#timeframe-selector button').forEach(button => {
                     if (button.getAttribute('data-timeframe') === timeframe) {
@@ -260,21 +260,21 @@
                 console.error('Error loading historical data:', error);
             });
     }
-    
+
     // Update chart
     function updateChart(labels, data, sensorName) {
         const ctx = document.getElementById('aqi-chart').getContext('2d');
-        
+
         // Check if chart already exists
         if (chart) {
             chart.destroy();
         }
-        
+
         // Get colors based on current theme
         const isDarkMode = document.documentElement.classList.contains('dark');
         const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
         const textColor = isDarkMode ? '#e5e5e5' : '#666';
-        
+
         // Create chart
         chart = new Chart(ctx, {
             type: 'line',
@@ -342,19 +342,19 @@
             }
         });
     }
-    
+
     // Set up timeframe selector click events
     document.querySelectorAll('#timeframe-selector button').forEach(button => {
         button.addEventListener('click', function() {
             const timeframe = this.getAttribute('data-timeframe');
             currentTimeframe = timeframe;
-            
+
             if (selectedSensor) {
                 loadSensorHistoricalData(selectedSensor.id, timeframe);
             }
         });
     });
-    
+
     // Update chart when dark mode changes
     document.getElementById('dark-mode-toggle')?.addEventListener('change', function() {
         if (selectedSensor && chart) {
@@ -362,4 +362,4 @@
         }
     });
 </script>
-@endsection 
+@endsection

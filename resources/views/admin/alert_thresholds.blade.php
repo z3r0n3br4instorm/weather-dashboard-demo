@@ -6,7 +6,7 @@
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 bg-white border-b border-gray-200">
                 <h1 class="text-2xl font-bold mb-6">Alert Thresholds Management</h1>
-                
+
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
                     <div class="flex">
                         <div class="flex-shrink-0">
@@ -21,10 +21,10 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <form action="{{ route('admin.alerts.update') }}" method="POST">
                     @csrf
-                    
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-white">
                             <thead>
@@ -66,17 +66,17 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="mt-6">
                         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                             Update Thresholds
                         </button>
                     </div>
                 </form>
-                
+
                 <div class="mt-8">
                     <h2 class="text-lg font-semibold mb-4">AQI Legend Preview</h2>
-                    
+
                     <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
                         @foreach($thresholds as $threshold)
                             <div class="rounded px-2 py-1 text-center" style="background-color: {{ $threshold->color_code }}; color: {{ in_array($threshold->category, ['Unhealthy', 'Very Unhealthy', 'Hazardous']) ? 'white' : 'black' }}">
